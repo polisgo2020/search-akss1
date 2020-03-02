@@ -30,7 +30,7 @@ func main() {
 
 		content[f.Name()] = data
 
-		words := strings.Split(string(data), " ")
+		words := strings.Fields(string(data))
 		for _, w := range words {
 			revIdx[w] = append(revIdx[w], f.Name())
 		}
