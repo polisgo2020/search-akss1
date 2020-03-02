@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"encoding/json"
 	"io/ioutil"
 	"log"
 	"os"
@@ -20,12 +20,13 @@ func main() {
 		log.Fatal(err)
 	}
 
-	content := map[string][]byte{}
+	content := map[string][]byte{} // for the future
 	revIdx := map[string][]string{}
 	for _, f := range files {
 		data, err := ioutil.ReadFile(path + "\\" + f.Name())
 		if err != nil {
-			log.Fatal("File reading error", err)
+			log.Println("File reading error", err)
+			continue
 		}
 
 		content[f.Name()] = data
@@ -35,5 +36,14 @@ func main() {
 			revIdx[w] = append(revIdx[w], f.Name())
 		}
 	}
-	fmt.Println(revIdx)
+
+	b, err := json.Marshal(revIdx)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = WriteFile(b, "revIdx.json")
+	if err != nil {
+		log.Fatal(err)
+	}
 }
