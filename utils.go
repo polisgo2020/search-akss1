@@ -4,7 +4,7 @@ import (
 	"os"
 )
 
-func WriteFile(b []byte, out string) error {
+func WriteToFile(b []byte, out string) error {
 	file, err := os.Create(out)
 	if err != nil {
 		return err
@@ -12,9 +12,6 @@ func WriteFile(b []byte, out string) error {
 	defer file.Close()
 
 	_, err = file.Write(b)
-	if err != nil {
-		return err
-	}
 
-	return nil
+	return err
 }

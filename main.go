@@ -5,35 +5,57 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"regexp"
 	"strings"
 )
 
+type Freq map[string]int
+
 func main() {
-	if len(os.Args) <= 1 {
-		log.Fatal("Need path with files")
+	revIdx := map[string][]Freq{}
+
+	re := regexp.MustCompile(`[\p{L}\d]+`) // find also unicode characters
+
+	if len(os.Args) < 3 {
+		log.Fatal("Need two params: files_path output_file")
 	}
 
 	path := os.Args[1]
+	out := os.Args[2]
 
 	files, err := ioutil.ReadDir(path)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	content := map[string][]byte{} // for the future
-	revIdx := map[string][]string{}
 	for _, f := range files {
-		data, err := ioutil.ReadFile(path + "\\" + f.Name())
+		if f.IsDir() {
+			log.Printf("File %s is directory. Skipping...", err)
+			continue
+		}
+
+		data, err := ioutil.ReadFile(path + "/" + f.Name())
 		if err != nil {
 			log.Println("File reading error", err)
 			continue
 		}
 
-		content[f.Name()] = data
+		freq := Freq{} // tokens frequency in current file
 
-		words := strings.Fields(string(data))
-		for _, w := range words {
-			revIdx[w] = append(revIdx[w], f.Name())
+		tokens := re.FindAllString(string(data), -1)
+
+		// calculate tokens freq for file
+		for _, t := range tokens {
+			if len(t) == 1 {
+				continue
+			}
+
+			w := strings.ToLower(t)
+			freq[w]++
+		}
+
+		for w, num := range freq {
+			revIdx[w] = append(revIdx[w], Freq{f.Name(): num})
 		}
 	}
 
@@ -42,7 +64,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	err = WriteFile(b, "revIdx.json")
+	err = WriteToFile(b, out)
 	if err != nil {
 		log.Fatal(err)
 	}
