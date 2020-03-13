@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"log"
-	"path"
+	"path/filepath"
 	"regexp"
 	"searchera/utils"
 	"strings"
@@ -29,7 +29,7 @@ func Make(dirPath string) (ReverseIdx, error) {
 			continue
 		}
 
-		data, err := ioutil.ReadFile(path.Join(dirPath, f.Name()))
+		data, err := ioutil.ReadFile(filepath.Join(dirPath, f.Name()))
 		if err != nil {
 			log.Println("File reading error", err)
 			continue
