@@ -13,10 +13,61 @@ import (
 type Freq map[string]int
 type ReverseIdx map[string][]Freq
 
+func Read(idxFile string) (ReverseIdx, error) {
+	idx := ReverseIdx{}
+
+	b, err := ioutil.ReadFile(idxFile)
+	if err != nil {
+		return idx, err
+	}
+
+	err = json.Unmarshal(b, &idx)
+	return idx, err
+}
+
+func SearchIn(idx ReverseIdx, substr string) Freq {
+	found := Freq{}
+	tkns := GetTokensFromStr(substr)
+
+	for _, t := range tkns {
+		t := strings.ToLower(t)
+
+		freq, ok := idx[t]
+		if !ok {
+			log.Printf("Token '%s' not found in reverse index", t)
+			continue
+		}
+
+		for _, f := range freq {
+			for k, v := range f {
+				found[k] += v
+			}
+		}
+	}
+
+	return found
+}
+
+func ReadAndSearch(idxPath string, substr string) error {
+	idx, err := Read(idxPath)
+	if err != nil {
+		return err
+	}
+
+	found := SearchIn(idx, substr)
+	if len(found) == 0 {
+		log.Println("Input string's tokens not found in reverse index")
+		return nil
+	}
+
+	for k, v := range found {
+		log.Printf("%s; %d matches", k, v)
+	}
+	return nil
+}
+
 func Make(dirPath string) (ReverseIdx, error) {
 	revIdx := ReverseIdx{}
-
-	re := regexp.MustCompile(`[\p{L}\d]+`) // find also unicode characters
 
 	files, err := ioutil.ReadDir(dirPath)
 	if err != nil {
@@ -37,8 +88,7 @@ func Make(dirPath string) (ReverseIdx, error) {
 
 		freq := Freq{} // tokens frequency in current file
 
-		tokens := re.FindAllString(string(data), -1)
-
+		tokens := GetTokensFromStr(string(data))
 		// calculate tokens freq for file
 		for _, t := range tokens {
 			if len(t) == 1 {
@@ -72,4 +122,10 @@ func MakeAndWrite(dirPath, outPath string) error {
 
 	err = utils.WriteToFile(b, outPath)
 	return err
+}
+
+func GetTokensFromStr(str string) []string {
+	re := regexp.MustCompile(`[\p{L}\d]+`) // find also unicode characters
+	tokens := re.FindAllString(str, -1)
+	return tokens
 }
