@@ -10,8 +10,6 @@ func WriteToFile(b []byte, out string) error {
 		return err
 	}
 	defer file.Close()
-
 	_, err = file.Write(b)
-
 	return err
 }
