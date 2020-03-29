@@ -3,11 +3,11 @@ package main
 import (
 	"flag"
 	"log"
-	"searchera/index"
+	"searchera/indexio"
 )
 
 func main() {
-	methodPtr := flag.String("m", "", "Method: search or make")
+	methodPtr := flag.String("m", "", "Method: make or search")
 	subStrPtr := flag.String("str", "", "Str for search")
 	inPathPtr := flag.String("in", "", "Input path")
 	outPathPtr := flag.String("out", "", "Output path")
@@ -15,12 +15,12 @@ func main() {
 
 	switch *methodPtr {
 	case "search":
-		err := index.ReadAndSearch(*inPathPtr, *subStrPtr)
+		err := indexio.ReadAndSearchIndex(*inPathPtr, *subStrPtr)
 		if err != nil {
 			log.Fatal(err)
 		}
 	case "make":
-		err := index.MakeAndWrite(*inPathPtr, *outPathPtr)
+		err := indexio.MakeAndWriteIndex(*inPathPtr, *outPathPtr)
 		if err != nil {
 			log.Fatal(err)
 		}

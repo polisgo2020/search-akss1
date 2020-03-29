@@ -1,11 +1,9 @@
 package index
 
 import (
-	"encoding/json"
 	"io/ioutil"
 	"log"
 	"path/filepath"
-	"regexp"
 	"searchera/utils"
 	"strings"
 )
@@ -13,22 +11,9 @@ import (
 type Freq map[string]int
 type ReverseIdx map[string][]Freq
 
-func Read(idxFile string) (ReverseIdx, error) {
-	idx := ReverseIdx{}
-
-	b, err := ioutil.ReadFile(idxFile)
-	if err != nil {
-		return idx, err
-	}
-
-	err = json.Unmarshal(b, &idx)
-	return idx, err
-}
-
-func SearchIn(idx ReverseIdx, substr string) Freq {
+func (idx ReverseIdx) Search(substr string) Freq {
 	found := Freq{}
-	tkns := GetTokensFromStr(substr)
-
+	tkns := utils.GetTokensFromStr(substr)
 	for _, t := range tkns {
 		t := strings.ToLower(t)
 
@@ -48,25 +33,7 @@ func SearchIn(idx ReverseIdx, substr string) Freq {
 	return found
 }
 
-func ReadAndSearch(idxPath string, substr string) error {
-	idx, err := Read(idxPath)
-	if err != nil {
-		return err
-	}
-
-	found := SearchIn(idx, substr)
-	if len(found) == 0 {
-		log.Println("Input string's tokens not found in reverse index")
-		return nil
-	}
-
-	for k, v := range found {
-		log.Printf("%s; %d matches", k, v)
-	}
-	return nil
-}
-
-func Make(dirPath string) (ReverseIdx, error) {
+func MakeIndex(dirPath string) (ReverseIdx, error) {
 	revIdx := ReverseIdx{}
 
 	files, err := ioutil.ReadDir(dirPath)
@@ -76,7 +43,7 @@ func Make(dirPath string) (ReverseIdx, error) {
 
 	for _, f := range files {
 		if f.IsDir() {
-			log.Printf("File %s is a directory. Skipping...", err)
+			log.Printf("File '%s' is a directory. Skipping...", f.Name())
 			continue
 		}
 
@@ -88,7 +55,7 @@ func Make(dirPath string) (ReverseIdx, error) {
 
 		freq := Freq{} // tokens frequency in current file
 
-		tokens := GetTokensFromStr(string(data))
+		tokens := utils.GetTokensFromStr(string(data))
 		// calculate tokens freq for file
 		for _, t := range tokens {
 			if len(t) == 1 {
@@ -107,25 +74,4 @@ func Make(dirPath string) (ReverseIdx, error) {
 	log.Println("Reverse index successfully make")
 
 	return revIdx, nil
-}
-
-func MakeAndWrite(dirPath, outPath string) error {
-	revIdx, err := Make(dirPath)
-	if err != nil {
-		return err
-	}
-
-	b, err := json.Marshal(revIdx)
-	if err != nil {
-		return err
-	}
-
-	err = utils.WriteToFile(b, outPath)
-	return err
-}
-
-func GetTokensFromStr(str string) []string {
-	re := regexp.MustCompile(`[\p{L}\d]+`) // find also unicode characters
-	tokens := re.FindAllString(str, -1)
-	return tokens
 }
