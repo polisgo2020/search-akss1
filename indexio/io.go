@@ -32,7 +32,7 @@ func MakeAndWriteIndex(dirPath string, outPath string) error {
 		return err
 	}
 
-	b, err := json.Marshal(revIdx)
+	b, err := json.Marshal(revIdx.M)
 	if err != nil {
 		return err
 	}
@@ -49,6 +49,6 @@ func ReadIndex(idxFile string) (index.ReverseIdx, error) {
 		return idx, err
 	}
 
-	err = json.Unmarshal(b, &idx)
+	err = json.Unmarshal(b, &idx.M)
 	return idx, err
 }
