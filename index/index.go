@@ -45,6 +45,25 @@ func (idx ReverseIdx) Search(substr string) Freq {
 	return found
 }
 
+func GetTokensFromText(data string) Freq {
+	freq := Freq{} // tokens frequency in current file
+
+	words := utils.GetWordsFromStr(data)
+
+	// calculate tokens freq for file
+	for _, w := range words {
+		token := strings.ToLower(w)
+
+		if stopwords.IsStopWord(token) {
+			continue
+		}
+
+		freq[token]++
+	}
+
+	return freq
+}
+
 func MakeIndex(dirPath string) (ReverseIdx, error) {
 	revIdx := ReverseIdx{}
 	revIdx.Init()
@@ -71,20 +90,7 @@ func MakeIndex(dirPath string) (ReverseIdx, error) {
 				return
 			}
 
-			freq := Freq{} // tokens frequency in current file
-
-			words := utils.GetWordsFromStr(string(data))
-
-			// calculate tokens freq for file
-			for _, w := range words {
-				token := strings.ToLower(w)
-
-				if stopwords.IsStopWord(token) {
-					continue
-				}
-
-				freq[token]++
-			}
+			freq := GetTokensFromText(string(data)) // tokens frequency in current file
 
 			for tok, num := range freq {
 				revIdx.mx.Lock()
