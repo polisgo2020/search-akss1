@@ -58,6 +58,10 @@ func GetTokensFromText(data string) Freq {
 			continue
 		}
 
+		if len(token) == 1 {
+			continue
+		}
+
 		freq[token]++
 	}
 

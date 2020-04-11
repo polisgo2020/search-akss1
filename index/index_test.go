@@ -27,8 +27,8 @@ Anton didn't reply. Anka also took a look, but saw only her own reflection.
 		t.Fatal(err)
 	}
 
-	actually := GetTokensFromText(content)
-	if !reflect.DeepEqual(expected, actually) {
+	actual := GetTokensFromText(content)
+	if !reflect.DeepEqual(expected, actual) {
 		log.Println("Tokens calculate failed")
 		t.Fail()
 	}
@@ -46,8 +46,8 @@ func TestReverseIdx_Search(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	freq := idx.Search("forest grass dark")
-	if !reflect.DeepEqual(expected, freq) {
+	actual := idx.Search("forest grass dark")
+	if !reflect.DeepEqual(expected, actual) {
 		t.Fail()
 	}
 }

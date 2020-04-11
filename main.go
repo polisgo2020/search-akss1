@@ -1,16 +1,12 @@
 package main
 
 import (
+	"github.com/urfave/cli/v2"
 	"log"
 	"net"
-	"net/http"
 	"os"
 	"searchera/indexio"
-	"searchera/servhandlers"
-	"time"
-
-	"github.com/gorilla/mux"
-	"github.com/urfave/cli/v2"
+	"searchera/server"
 )
 
 func main() {
@@ -92,20 +88,9 @@ func ProcessServer(c *cli.Context) error {
 
 	log.Printf("Index '%s' read succesfull", idxPath)
 
-	r := mux.NewRouter()
-	r.HandleFunc("/search", func(w http.ResponseWriter, r *http.Request) {
-		servhandlers.SearchHandler(w, r, idx, idxPath)
-	}).Methods("GET")
-
-	srv := &http.Server{
-		Handler: r,
-		Addr:    addr,
-		// Good practice: enforce timeouts for servers you create!
-		WriteTimeout: 15 * time.Second,
-		ReadTimeout:  15 * time.Second,
+	if err := server.Run(addr, idx, idxPath); err != nil {
+		log.Fatal(err)
 	}
-
-	log.Fatal(srv.ListenAndServe())
 
 	return nil
 }
