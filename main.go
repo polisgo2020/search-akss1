@@ -3,7 +3,6 @@ package main
 import (
 	"github.com/urfave/cli/v2"
 	"log"
-	"net"
 	"os"
 	"searchera/indexio"
 	"searchera/server"
@@ -79,8 +78,6 @@ func ProcessServer(c *cli.Context) error {
 	port := c.String("port")
 	idxPath := c.String("index")
 
-	addr := net.JoinHostPort(host, port)
-
 	idx, err := indexio.ReadIndex(idxPath)
 	if err != nil {
 		log.Fatal(err)
@@ -88,7 +85,7 @@ func ProcessServer(c *cli.Context) error {
 
 	log.Printf("Index '%s' read succesfull", idxPath)
 
-	if err := server.Run(addr, idx, idxPath); err != nil {
+	if err := server.Run(host, port, idx, idxPath); err != nil {
 		log.Fatal(err)
 	}
 
