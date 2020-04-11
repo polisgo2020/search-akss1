@@ -3,21 +3,33 @@ package index
 import (
 	"io/ioutil"
 	"log"
+	"os"
 	"path/filepath"
 	"searchera/utils"
 	"strings"
+	"sync"
+
+	"github.com/zoomio/stopwords"
 )
 
 type Freq map[string]int
-type ReverseIdx map[string][]Freq
+
+type ReverseIdx struct {
+	mx sync.Mutex
+	M  map[string][]Freq
+}
+
+func (idx *ReverseIdx) Init() {
+	idx.M = make(map[string][]Freq)
+}
 
 func (idx ReverseIdx) Search(substr string) Freq {
 	found := Freq{}
-	tkns := utils.GetTokensFromStr(substr)
-	for _, t := range tkns {
+	tokens := utils.GetWordsFromStr(substr)
+	for _, t := range tokens {
 		t := strings.ToLower(t)
 
-		freq, ok := idx[t]
+		freq, ok := idx.M[t]
 		if !ok {
 			log.Printf("Token '%s' not found in reverse index", t)
 			continue
@@ -35,42 +47,54 @@ func (idx ReverseIdx) Search(substr string) Freq {
 
 func MakeIndex(dirPath string) (ReverseIdx, error) {
 	revIdx := ReverseIdx{}
+	revIdx.Init()
 
 	files, err := ioutil.ReadDir(dirPath)
 	if err != nil {
 		return revIdx, err
 	}
 
+	wg := &sync.WaitGroup{}
+	wg.Add(len(files))
 	for _, f := range files {
-		if f.IsDir() {
-			log.Printf("File '%s' is a directory. Skipping...", f.Name())
-			continue
-		}
+		go func(file os.FileInfo) {
+			defer wg.Done()
 
-		data, err := ioutil.ReadFile(filepath.Join(dirPath, f.Name()))
-		if err != nil {
-			log.Println("File reading error", err)
-			continue
-		}
-
-		freq := Freq{} // tokens frequency in current file
-
-		tokens := utils.GetTokensFromStr(string(data))
-		// calculate tokens freq for file
-		for _, t := range tokens {
-			if len(t) == 1 {
-				continue
+			if file.IsDir() {
+				log.Printf("File '%s' is a directory. Skipping...", file.Name())
+				return
 			}
 
-			w := strings.ToLower(t)
-			freq[w]++
-		}
+			data, err := ioutil.ReadFile(filepath.Join(dirPath, file.Name()))
+			if err != nil {
+				log.Println("File reading error", err)
+				return
+			}
 
-		for w, num := range freq {
-			revIdx[w] = append(revIdx[w], Freq{f.Name(): num})
-		}
+			freq := Freq{} // tokens frequency in current file
+
+			words := utils.GetWordsFromStr(string(data))
+
+			// calculate tokens freq for file
+			for _, w := range words {
+				token := strings.ToLower(w)
+
+				if stopwords.IsStopWord(token) {
+					continue
+				}
+
+				freq[token]++
+			}
+
+			for tok, num := range freq {
+				revIdx.mx.Lock()
+				revIdx.M[tok] = append(revIdx.M[tok], Freq{file.Name(): num})
+				revIdx.mx.Unlock()
+			}
+		}(f)
 	}
 
+	wg.Wait()
 	log.Println("Reverse index successfully make")
 
 	return revIdx, nil
