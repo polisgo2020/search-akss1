@@ -18,11 +18,10 @@ Anton didn't reply. Anka also took a look, but saw only her own reflection.
 
 "Be good to take a swim," said Pashka, plunging his arm into the water up to his elbow. "It's cold," he reported.`
 
-	freqRaw := `{"anka":1,"anton":2,"arm":1,"asked":1,"big":1,"boat":1,"cold":1,"confidently":1,"didn":1,"elbow":1,"fins":1,"good":1,"huge":1,"kids":1,"leaning":1,"pashka":2,"pike":1,"plunging":1,"prologue":1,"reflection":1,"reply":1,"reported":1,"sat":1,"side":1,"swim":1,"t":1,"water":2}`
-
+	expectedJson := `{"anka":1,"anton":2,"arm":1,"asked":1,"big":1,"boat":1,"cold":1,"confidently":1,"didn":1,"elbow":1,"fins":1,"good":1,"huge":1,"kids":1,"leaning":1,"pashka":2,"pike":1,"plunging":1,"prologue":1,"reflection":1,"reply":1,"reported":1,"sat":1,"side":1,"swim":1,"water":2}`
 	expected := Freq{}
 
-	err := json.Unmarshal([]byte(freqRaw), &expected)
+	err := json.Unmarshal([]byte(expectedJson), &expected)
 	if err != nil {
 		t.Fatal(err)
 	}
