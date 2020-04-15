@@ -1,11 +1,11 @@
 package main
 
 import (
+	"github.com/urfave/cli/v2"
 	"log"
 	"os"
 	"searchera/indexio"
-
-	"github.com/urfave/cli/v2"
+	"searchera/server"
 )
 
 func main() {
@@ -21,6 +21,22 @@ func main() {
 	}
 
 	app.Commands = []*cli.Command{
+		{
+			Name:  "server",
+			Usage: "Read index and starts the http server on the specified host and port",
+			Flags: []cli.Flag{
+				&cli.StringFlag{
+					Name:        "host",
+					DefaultText: "127.0.0.1",
+				},
+				&cli.StringFlag{
+					Name:        "port",
+					DefaultText: "8080",
+				},
+				idxFlag,
+			},
+			Action: ProcessServer,
+		},
 		{
 			Name:    "make",
 			Aliases: []string{"m"},
@@ -55,6 +71,25 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+func ProcessServer(c *cli.Context) error {
+	host := c.String("host")
+	port := c.String("port")
+	idxPath := c.String("index")
+
+	idx, err := indexio.ReadIndex(idxPath)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	log.Printf("Index '%s' read succesfull", idxPath)
+
+	if err := server.Run(host, port, idx, idxPath); err != nil {
+		log.Fatal(err)
+	}
+
+	return nil
 }
 
 func ProcessMakeIdx(c *cli.Context) error {
