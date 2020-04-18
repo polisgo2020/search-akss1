@@ -2,6 +2,7 @@ package server
 
 import (
 	"github.com/gorilla/mux"
+	"github.com/rs/zerolog/log"
 	"html/template"
 	"net"
 	"net/http"
@@ -10,8 +11,6 @@ import (
 )
 
 func Run(host string, port string, idx index.ReverseIdx, idxPath string) error {
-	r := mux.NewRouter()
-
 	rootTpl, err := template.ParseFiles("server/root.html")
 	if err != nil {
 		return err
@@ -22,6 +21,7 @@ func Run(host string, port string, idx index.ReverseIdx, idxPath string) error {
 		return err
 	}
 
+	r := mux.NewRouter()
 	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		RootHandler(w, r, rootTpl)
 	}).Methods("GET")
@@ -30,12 +30,13 @@ func Run(host string, port string, idx index.ReverseIdx, idxPath string) error {
 		SearchHandler(w, r, idx, idxPath, resultTpl)
 	}).Methods("GET")
 
+	logger := logMiddleware(r)
+
 	addr := net.JoinHostPort(host, port)
 
 	srv := &http.Server{
-		Handler: r,
-		Addr:    addr,
-		// Good practice: enforce timeouts for servers you create!
+		Handler:      logger,
+		Addr:         addr,
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
 	}
@@ -43,4 +44,18 @@ func Run(host string, port string, idx index.ReverseIdx, idxPath string) error {
 	err = srv.ListenAndServe()
 
 	return err
+}
+
+// logMiddleware logging all request
+func logMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		start := time.Now()
+		next.ServeHTTP(w, r)
+		log.Debug().
+			Str("method", r.Method).
+			Str("remote", r.RemoteAddr).
+			Str("path", r.URL.Path).
+			Int("duration", int(time.Since(start))).
+			Msgf("Called url %s", r.URL.Path)
+	})
 }

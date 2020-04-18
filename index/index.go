@@ -5,8 +5,8 @@ index.
 package index
 
 import (
+	"github.com/rs/zerolog/log"
 	"io/ioutil"
-	"log"
 	"os"
 	"path/filepath"
 	"searchera/utils"
@@ -40,7 +40,7 @@ func (idx ReverseIdx) Search(substr string) Freq {
 
 		freq, ok := idx.M[t]
 		if !ok {
-			log.Printf("Token '%s' not found in reverse index", t)
+			log.Info().Msgf("Token '%s' not found in reverse index", t)
 			continue
 		}
 
@@ -95,13 +95,13 @@ func MakeIndex(dirPath string) (ReverseIdx, error) {
 			defer wg.Done()
 
 			if file.IsDir() {
-				log.Printf("File '%s' is a directory. Skipping...", file.Name())
+				log.Info().Msgf("File '%s' is a directory. Skipping...", file.Name())
 				return
 			}
 
 			data, err := ioutil.ReadFile(filepath.Join(dirPath, file.Name()))
 			if err != nil {
-				log.Println("File reading error", err)
+				log.Error().Err(err)
 				return
 			}
 
@@ -116,7 +116,8 @@ func MakeIndex(dirPath string) (ReverseIdx, error) {
 	}
 
 	wg.Wait()
-	log.Println("Reverse index successfully make")
+
+	log.Info().Msg("Reverse index successfully make")
 
 	return revIdx, nil
 }

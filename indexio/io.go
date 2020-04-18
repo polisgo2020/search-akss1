@@ -5,8 +5,8 @@ package indexio
 
 import (
 	"encoding/json"
+	"github.com/rs/zerolog/log"
 	"io/ioutil"
-	"log"
 	"searchera/index"
 	"searchera/utils"
 )
@@ -19,12 +19,12 @@ func ReadAndSearchIndex(idxPath string, substr string) error {
 
 	found := idx.Search(substr)
 	if len(found) == 0 {
-		log.Println("Input string's tokens not found in reverse index")
+		log.Info().Msgf(`String "%s" tokens not found in reverse index`, substr)
 		return nil
 	}
 
 	for k, v := range found {
-		log.Printf("%s; %d matches", k, v)
+		log.Info().Int(k, v)
 	}
 	return nil
 }

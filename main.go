@@ -1,8 +1,8 @@
 package main
 
 import (
+	"github.com/rs/zerolog/log"
 	"github.com/urfave/cli/v2"
-	"log"
 	"os"
 	"searchera/indexio"
 	"searchera/server"
@@ -69,7 +69,7 @@ func main() {
 
 	err := app.Run(os.Args)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal().Err(err)
 	}
 }
 
@@ -80,13 +80,13 @@ func ProcessServer(c *cli.Context) error {
 
 	idx, err := indexio.ReadIndex(idxPath)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal().Err(err)
 	}
 
-	log.Printf("Index '%s' read succesfull", idxPath)
+	log.Info().Msgf("Index '%s' read successful", idxPath)
 
 	if err := server.Run(host, port, idx, idxPath); err != nil {
-		log.Fatal(err)
+		log.Fatal().Err(err)
 	}
 
 	return nil
@@ -98,7 +98,7 @@ func ProcessMakeIdx(c *cli.Context) error {
 
 	err := indexio.MakeAndWriteIndex(dirPath, idxPath)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal().Err(err)
 	}
 
 	return nil
@@ -110,7 +110,7 @@ func ProcessSearch(c *cli.Context) error {
 
 	err := indexio.ReadAndSearchIndex(idxPath, str)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal().Err(err)
 	}
 
 	return nil
