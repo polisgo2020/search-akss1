@@ -1,3 +1,6 @@
+/*
+Package indexio contains functions for index input and output.
+*/
 package indexio
 
 import (
