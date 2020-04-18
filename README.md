@@ -7,9 +7,9 @@ go run main.go server --host 127.0.0.1 --port 8080 --index idx.json
 
 After the index is readed, and the server starts, we need to send the http GET request with "search" method and "str" query param":
 ```bash
-    curl 127.0.0.1:8080/search?str=Author+help
+    curl 127.0.0.1:8080/search?q=Author+help
 or
-    http://127.0.0.1:8080/search?str=Author help
+    http://127.0.0.1:8080/search?q=Author help
 ```
 <br>
 <br>

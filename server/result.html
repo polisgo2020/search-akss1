@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <title>Result</title>
+        <meta charset="UTF-8">
+    </head>
+    <body>
+        <form action="/search" method="get">
+            Query: <input type="text" name="q">
+            <br>
+            <input type="submit" value="Search">
+        </form>
+        <br>
+        <br>
+        Query: <b>{{.Query}}</b>
+        <br>
+        Results:
+        <br>
+        {{range $key, $value := .Results }}
+            <li><strong>{{ $key }}</strong>: {{ $value }}</li>
+        {{end}}
+    </body>
+</html>

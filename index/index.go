@@ -31,6 +31,7 @@ func (idx *ReverseIdx) Init() {
 }
 
 // Search query over the index.
+// Returns map token to num
 func (idx ReverseIdx) Search(substr string) Freq {
 	found := Freq{}
 	tokens := utils.GetWordsFromStr(substr)
