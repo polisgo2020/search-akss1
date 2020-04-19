@@ -1,8 +1,11 @@
 Usage examples
 
+Before the start you need to set environment variables: <b>LISTEN</b> (default: "localhost:8080") and <b>LOG_LEVEL</b> (default: "info")
+
+
 For run http search server:
 ```bash
-go run main.go server --host 127.0.0.1 --port 8080 --index idx.json
+go run main.go server --index idx.json
 ```
 
 After the index is readed, and the server starts, we need to send the http GET request with "search" method and "str" query param":

@@ -4,13 +4,12 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/rs/zerolog/log"
 	"html/template"
-	"net"
 	"net/http"
 	"searchera/index"
 	"time"
 )
 
-func Run(host string, port string, idx index.ReverseIdx, idxPath string) error {
+func Run(addr string, idx index.ReverseIdx, idxPath string) error {
 	rootTpl, err := template.ParseFiles("server/root.html")
 	if err != nil {
 		return err
@@ -31,8 +30,6 @@ func Run(host string, port string, idx index.ReverseIdx, idxPath string) error {
 	}).Methods("GET")
 
 	logger := logMiddleware(r)
-
-	addr := net.JoinHostPort(host, port)
 
 	srv := &http.Server{
 		Handler:      logger,
