@@ -1,14 +1,32 @@
 package main
 
 import (
+	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/urfave/cli/v2"
 	"os"
+	"searchera/config"
 	"searchera/indexio"
 	"searchera/server"
 )
 
+var cfg config.Config
+
 func main() {
+	var err error
+
+	cfg, err = config.Load()
+	if err != nil {
+		log.Fatal().Err(err)
+	}
+
+	lvl, err := zerolog.ParseLevel(cfg.LogLevel)
+	if err != nil {
+		log.Fatal().Err(err)
+	}
+
+	zerolog.SetGlobalLevel(lvl)
+
 	app := &cli.App{
 		Name:  "Searchera",
 		Usage: "Make reverse index from directory with text files and search with it",
@@ -25,14 +43,6 @@ func main() {
 			Name:  "server",
 			Usage: "Read index and starts the http server on the specified host and port",
 			Flags: []cli.Flag{
-				&cli.StringFlag{
-					Name:        "host",
-					DefaultText: "127.0.0.1",
-				},
-				&cli.StringFlag{
-					Name:        "port",
-					DefaultText: "8080",
-				},
 				idxFlag,
 			},
 			Action: ProcessServer,
@@ -67,15 +77,13 @@ func main() {
 		},
 	}
 
-	err := app.Run(os.Args)
-	if err != nil {
+	if err = app.Run(os.Args); err != nil {
 		log.Fatal().Err(err)
 	}
 }
 
 func ProcessServer(c *cli.Context) error {
-	host := c.String("host")
-	port := c.String("port")
+	addr := cfg.Listen
 	idxPath := c.String("index")
 
 	idx, err := indexio.ReadIndex(idxPath)
@@ -85,7 +93,7 @@ func ProcessServer(c *cli.Context) error {
 
 	log.Info().Msgf("Index '%s' read successful", idxPath)
 
-	if err := server.Run(host, port, idx, idxPath); err != nil {
+	if err := server.Run(addr, idx, idxPath); err != nil {
 		log.Fatal().Err(err)
 	}
 
