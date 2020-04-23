@@ -1,8 +1,12 @@
+/*
+Package index implements inverted index with thread-safe functions to index new documents, to search over the built
+index.
+*/
 package index
 
 import (
+	"github.com/rs/zerolog/log"
 	"io/ioutil"
-	"log"
 	"os"
 	"path/filepath"
 	"searchera/utils"
@@ -12,17 +16,22 @@ import (
 	"github.com/zoomio/stopwords"
 )
 
+// Freq contains map of token to number or filename to number
 type Freq map[string]int
 
+// ReverseIdx contains map of the token to map of the filename to num
 type ReverseIdx struct {
 	mx sync.Mutex
 	M  map[string][]Freq
 }
 
+// Init the index map
 func (idx *ReverseIdx) Init() {
 	idx.M = make(map[string][]Freq)
 }
 
+// Search query over the index.
+// Returns map token to num
 func (idx ReverseIdx) Search(substr string) Freq {
 	found := Freq{}
 	tokens := utils.GetWordsFromStr(substr)
@@ -31,7 +40,7 @@ func (idx ReverseIdx) Search(substr string) Freq {
 
 		freq, ok := idx.M[t]
 		if !ok {
-			log.Printf("Token '%s' not found in reverse index", t)
+			log.Info().Msgf("Token '%s' not found in reverse index", t)
 			continue
 		}
 
@@ -45,6 +54,7 @@ func (idx ReverseIdx) Search(substr string) Freq {
 	return found
 }
 
+// GetTokensFromText returns map of token to num
 func GetTokensFromText(data string) Freq {
 	freq := Freq{} // tokens frequency in current file
 
@@ -68,6 +78,7 @@ func GetTokensFromText(data string) Freq {
 	return freq
 }
 
+// MakeIndex returns the reverse index of all files in a directory
 func MakeIndex(dirPath string) (ReverseIdx, error) {
 	revIdx := ReverseIdx{}
 	revIdx.Init()
@@ -84,13 +95,13 @@ func MakeIndex(dirPath string) (ReverseIdx, error) {
 			defer wg.Done()
 
 			if file.IsDir() {
-				log.Printf("File '%s' is a directory. Skipping...", file.Name())
+				log.Info().Msgf("File '%s' is a directory. Skipping...", file.Name())
 				return
 			}
 
 			data, err := ioutil.ReadFile(filepath.Join(dirPath, file.Name()))
 			if err != nil {
-				log.Println("File reading error", err)
+				log.Error().Err(err)
 				return
 			}
 
@@ -105,7 +116,8 @@ func MakeIndex(dirPath string) (ReverseIdx, error) {
 	}
 
 	wg.Wait()
-	log.Println("Reverse index successfully make")
+
+	log.Info().Msg("Reverse index successfully make")
 
 	return revIdx, nil
 }
